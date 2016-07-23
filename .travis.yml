@@ -1,6 +1,6 @@
 language: go
 
-before_install:
+before_script:
   - sudo add-apt-repository ppa:chris-lea/redis-server -y
-  - sudo apt-get update -q
+  - sudo apt-get update -qq
   - sudo apt-get install redis-server -y
