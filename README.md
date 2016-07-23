@@ -3,7 +3,6 @@ Redis Token Store
 
 [![GoDoc](https://godoc.org/github.com/go-oauth2/redis?status.svg)](https://godoc.org/github.com/go-oauth2/redis)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-oauth2/redis)](https://goreportcard.com/report/github.com/go-oauth2/redis)
-[![Build Status](https://travis-ci.org/go-oauth2/redis.svg?branch=master)](https://travis-ci.org/go-oauth2/redis)
 
 Install
 -------
