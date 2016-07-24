@@ -1,5 +1,5 @@
-Redis Token Store
-=================
+Redis Storage for OAuth2
+========================
 
 [![GoDoc](https://godoc.org/github.com/go-oauth2/redis?status.svg)](https://godoc.org/github.com/go-oauth2/redis)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-oauth2/redis)](https://goreportcard.com/report/github.com/go-oauth2/redis)
@@ -24,8 +24,8 @@ import (
 
 func main() {
 	manager := manage.NewDefaultManager()
-	// use redis store
-	manager.MustTokenStorage(redis.NewStore(&redis.Config{
+	// use redis token store
+	manager.MustTokenStorage(redis.NewTokenStore(&redis.Config{
 		Addr: "127.0.0.1:6379",
 	}))
 

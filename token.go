@@ -10,11 +10,11 @@ import (
 	"gopkg.in/oauth2.v3/models"
 )
 
-// DefaultIncrKey store incr id
+// DefaultIncrKey TokenStore incr id
 const DefaultIncrKey = "oauth2_incr"
 
-// NewStore Create a token store instance based on redis
-func NewStore(cfg *Config) (store oauth2.TokenStore, err error) {
+// NewTokenStore Create a token TokenStore instance based on redis
+func NewTokenStore(cfg *Config) (ts oauth2.TokenStore, err error) {
 	opt := &redis.Options{
 		Network:      cfg.Network,
 		Addr:         cfg.Addr,
@@ -32,21 +32,21 @@ func NewStore(cfg *Config) (store oauth2.TokenStore, err error) {
 		err = verr
 		return
 	}
-	store = &Store{cli: cli}
+	ts = &TokenStore{cli: cli}
 	return
 }
 
-// Store Redis Store
-type Store struct {
+// TokenStore Redis Token Store
+type TokenStore struct {
 	cli *redis.Client
 }
 
-func (rs *Store) getBasicID(id int64, info oauth2.TokenInfo) string {
+func (rs *TokenStore) getBasicID(id int64, info oauth2.TokenInfo) string {
 	return "oauth2_" + info.GetClientID() + "_" + strconv.FormatInt(id, 10)
 }
 
-// Create Create and store the new token information
-func (rs *Store) Create(info oauth2.TokenInfo) (err error) {
+// Create Create and TokenStore the new token information
+func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 	jv, err := json.Marshal(info)
 	if err != nil {
 		return
@@ -85,7 +85,7 @@ func (rs *Store) Create(info oauth2.TokenInfo) (err error) {
 }
 
 // remove
-func (rs *Store) remove(key string) (err error) {
+func (rs *TokenStore) remove(key string) (err error) {
 	_, verr := rs.cli.Del(key).Result()
 	if verr != redis.Nil {
 		err = verr
@@ -94,19 +94,19 @@ func (rs *Store) remove(key string) (err error) {
 }
 
 // RemoveByAccess Use the access token to delete the token information(Along with the refresh token)
-func (rs *Store) RemoveByAccess(access string) (err error) {
+func (rs *TokenStore) RemoveByAccess(access string) (err error) {
 	err = rs.remove(access)
 	return
 }
 
 // RemoveByRefresh Use the refresh token to delete the token information
-func (rs *Store) RemoveByRefresh(refresh string) (err error) {
+func (rs *TokenStore) RemoveByRefresh(refresh string) (err error) {
 	err = rs.remove(refresh)
 	return
 }
 
 // get
-func (rs *Store) get(token string) (ti oauth2.TokenInfo, err error) {
+func (rs *TokenStore) get(token string) (ti oauth2.TokenInfo, err error) {
 	tv, verr := rs.cli.Get(token).Result()
 	if verr != nil {
 		if verr == redis.Nil {
@@ -137,13 +137,13 @@ func (rs *Store) get(token string) (ti oauth2.TokenInfo, err error) {
 }
 
 // GetByAccess Use the access token for token information data
-func (rs *Store) GetByAccess(access string) (ti oauth2.TokenInfo, err error) {
+func (rs *TokenStore) GetByAccess(access string) (ti oauth2.TokenInfo, err error) {
 	ti, err = rs.get(access)
 	return
 }
 
 // GetByRefresh Use the refresh token for token information data
-func (rs *Store) GetByRefresh(refresh string) (ti oauth2.TokenInfo, err error) {
+func (rs *TokenStore) GetByRefresh(refresh string) (ti oauth2.TokenInfo, err error) {
 	ti, err = rs.get(refresh)
 	return
 }
