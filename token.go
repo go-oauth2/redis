@@ -10,10 +10,10 @@ import (
 	"gopkg.in/oauth2.v3/models"
 )
 
-// DefaultIncrKey TokenStore incr id
+// DefaultIncrKey The name of the key stored on the ID
 const DefaultIncrKey = "oauth2_incr"
 
-// NewTokenStore Create a token TokenStore instance based on redis
+// NewTokenStore Create a token store instance based on redis
 func NewTokenStore(cfg *Config) (ts oauth2.TokenStore, err error) {
 	opt := &redis.Options{
 		Network:      cfg.Network,
@@ -36,7 +36,7 @@ func NewTokenStore(cfg *Config) (ts oauth2.TokenStore, err error) {
 	return
 }
 
-// TokenStore Redis Token Store
+// TokenStore redis token store
 type TokenStore struct {
 	cli *redis.Client
 }
@@ -45,7 +45,7 @@ func (rs *TokenStore) getBasicID(id int64, info oauth2.TokenInfo) string {
 	return "oauth2_" + info.GetClientID() + "_" + strconv.FormatInt(id, 10)
 }
 
-// Create Create and TokenStore the new token information
+// Create Create and store the new token information
 func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 	jv, err := json.Marshal(info)
 	if err != nil {
@@ -93,7 +93,7 @@ func (rs *TokenStore) remove(key string) (err error) {
 	return
 }
 
-// RemoveByAccess Use the access token to delete the token information(Along with the refresh token)
+// RemoveByAccess Use the access token to delete the token information
 func (rs *TokenStore) RemoveByAccess(access string) (err error) {
 	err = rs.remove(access)
 	return
