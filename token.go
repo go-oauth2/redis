@@ -2,16 +2,14 @@ package redis
 
 import (
 	"encoding/json"
-	"strconv"
+	"time"
 
+	"github.com/satori/go.uuid"
 	"gopkg.in/redis.v4"
 
 	"gopkg.in/oauth2.v3"
 	"gopkg.in/oauth2.v3/models"
 )
-
-// DefaultIncrKey The name of the key stored on the ID
-const DefaultIncrKey = "oauth2_incr"
 
 // NewTokenStore Create a token store instance based on redis
 func NewTokenStore(cfg *Config) (ts oauth2.TokenStore, err error) {
@@ -41,35 +39,20 @@ type TokenStore struct {
 	cli *redis.Client
 }
 
-func (rs *TokenStore) getBasicID(id int64, info oauth2.TokenInfo) string {
-	return "oauth2_" + info.GetClientID() + "_" + strconv.FormatInt(id, 10)
-}
-
 // Create Create and store the new token information
 func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
+	ct := time.Now()
 	jv, err := json.Marshal(info)
 	if err != nil {
 		return
 	}
-	id, err := rs.cli.Incr(DefaultIncrKey).Result()
-	if err != nil {
-		return
-	}
 	pipe := rs.cli.Pipeline()
-	basicID := rs.getBasicID(id, info)
+	basicID := uuid.NewV4().String()
 	aexp := info.GetAccessExpiresIn()
 	rexp := aexp
 
 	if refresh := info.GetRefresh(); refresh != "" {
-		rexp = info.GetRefreshExpiresIn()
-		ttl := rs.cli.TTL(refresh)
-		if verr := ttl.Err(); verr != nil {
-			err = verr
-			return
-		}
-		if v := ttl.Val(); v.Seconds() > 0 {
-			rexp = v
-		}
+		rexp = info.GetRefreshCreateAt().Add(info.GetRefreshExpiresIn()).Sub(ct)
 		if aexp.Seconds() > rexp.Seconds() {
 			aexp = rexp
 		}
