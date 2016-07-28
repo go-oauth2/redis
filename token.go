@@ -47,19 +47,23 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 		return
 	}
 	pipe := rs.cli.Pipeline()
-	basicID := uuid.NewV4().String()
-	aexp := info.GetAccessExpiresIn()
-	rexp := aexp
+	if code := info.GetCode(); code != "" {
+		pipe.Set(code, jv, info.GetCodeExpiresIn())
+	} else {
+		basicID := uuid.NewV4().String()
+		aexp := info.GetAccessExpiresIn()
+		rexp := aexp
 
-	if refresh := info.GetRefresh(); refresh != "" {
-		rexp = info.GetRefreshCreateAt().Add(info.GetRefreshExpiresIn()).Sub(ct)
-		if aexp.Seconds() > rexp.Seconds() {
-			aexp = rexp
+		if refresh := info.GetRefresh(); refresh != "" {
+			rexp = info.GetRefreshCreateAt().Add(info.GetRefreshExpiresIn()).Sub(ct)
+			if aexp.Seconds() > rexp.Seconds() {
+				aexp = rexp
+			}
+			pipe.Set(refresh, basicID, rexp)
 		}
-		pipe.Set(refresh, basicID, rexp)
+		pipe.Set(info.GetAccess(), basicID, aexp)
+		pipe.Set(basicID, jv, rexp)
 	}
-	pipe.Set(info.GetAccess(), basicID, aexp)
-	pipe.Set(basicID, jv, rexp)
 
 	if _, verr := pipe.Exec(); verr != nil {
 		err = verr
@@ -76,6 +80,12 @@ func (rs *TokenStore) remove(key string) (err error) {
 	return
 }
 
+// RemoveByCode Use the authorization code to delete the token information
+func (rs *TokenStore) RemoveByCode(code string) (err error) {
+	err = rs.remove(code)
+	return
+}
+
 // RemoveByAccess Use the access token to delete the token information
 func (rs *TokenStore) RemoveByAccess(access string) (err error) {
 	err = rs.remove(access)
@@ -88,17 +98,8 @@ func (rs *TokenStore) RemoveByRefresh(refresh string) (err error) {
 	return
 }
 
-// get
-func (rs *TokenStore) get(token string) (ti oauth2.TokenInfo, err error) {
-	tv, verr := rs.cli.Get(token).Result()
-	if verr != nil {
-		if verr == redis.Nil {
-			return
-		}
-		err = verr
-		return
-	}
-	result := rs.cli.Get(tv)
+func (rs *TokenStore) getData(key string) (ti oauth2.TokenInfo, err error) {
+	result := rs.cli.Get(key)
 	if verr := result.Err(); verr != nil {
 		if verr == redis.Nil {
 			return
@@ -119,14 +120,41 @@ func (rs *TokenStore) get(token string) (ti oauth2.TokenInfo, err error) {
 	return
 }
 
+func (rs *TokenStore) getBasicID(token string) (basicID string, err error) {
+	tv, verr := rs.cli.Get(token).Result()
+	if verr != nil {
+		if verr == redis.Nil {
+			return
+		}
+		err = verr
+		return
+	}
+	basicID = tv
+	return
+}
+
+// GetByCode Use the authorization code for token information data
+func (rs *TokenStore) GetByCode(code string) (ti oauth2.TokenInfo, err error) {
+	ti, err = rs.getData(code)
+	return
+}
+
 // GetByAccess Use the access token for token information data
 func (rs *TokenStore) GetByAccess(access string) (ti oauth2.TokenInfo, err error) {
-	ti, err = rs.get(access)
+	basicID, err := rs.getBasicID(access)
+	if err != nil || basicID == "" {
+		return
+	}
+	ti, err = rs.getData(basicID)
 	return
 }
 
 // GetByRefresh Use the refresh token for token information data
 func (rs *TokenStore) GetByRefresh(refresh string) (ti oauth2.TokenInfo, err error) {
-	ti, err = rs.get(refresh)
+	basicID, err := rs.getBasicID(refresh)
+	if err != nil || basicID == "" {
+		return
+	}
+	ti, err = rs.getData(basicID)
 	return
 }
