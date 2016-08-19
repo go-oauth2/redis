@@ -1,18 +1,18 @@
-Redis Storage for OAuth2
-========================
+# Redis Storage for OAuth 2.0
 
-[![GoDoc](https://godoc.org/github.com/go-oauth2/redis?status.svg)](https://godoc.org/github.com/go-oauth2/redis)
-[![Go Report Card](https://goreportcard.com/badge/github.com/go-oauth2/redis)](https://goreportcard.com/report/github.com/go-oauth2/redis)
+> Based on the redis token storage
 
-Install
--------
+[![License][License-Image]][License-Url] 
+[![ReportCard][ReportCard-Image]][ReportCard-Url] 
+[![GoDoc][GoDoc-Image]][GoDoc-Url]
+
+## Install
 
 ``` bash
-$ go get -u -v github.com/go-oauth2/redis
+$ go get -u github.com/go-oauth2/redis
 ```
 
-Usage
------
+## Usage
 
 ``` go
 package main
@@ -33,10 +33,15 @@ func main() {
 }
 ```
 
-License
--------
+## MIT License
 
 ```
-Copyright (c) 2016, OAuth 2.0
-All rights reserved.
+Copyright (c) 2016 Lyric
 ```
+
+[License-Url]: http://opensource.org/licenses/MIT
+[License-Image]: https://img.shields.io/npm/l/express.svg
+[ReportCard-Url]: https://goreportcard.com/report/github.com/go-oauth2/redis
+[ReportCard-Image]: https://goreportcard.com/badge/github.com/go-oauth2/redis
+[GoDoc-Url]: https://godoc.org/github.com/go-oauth2/redis
+[GoDoc-Image]: https://godoc.org/github.com/go-oauth2/redis?status.svg

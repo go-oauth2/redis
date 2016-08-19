@@ -13,7 +13,7 @@ import (
 func TestTokenStore(t *testing.T) {
 	Convey("Test redis token store", t, func() {
 		cfg := &redis.Config{
-			Addr: "192.168.33.70:6379",
+			Addr: "127.0.0.1:6379",
 		}
 		store, err := redis.NewTokenStore(cfg)
 		So(err, ShouldBeNil)
