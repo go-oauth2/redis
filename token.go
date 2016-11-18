@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/satori/go.uuid"
-	"gopkg.in/redis.v4"
+	"gopkg.in/redis.v5"
 
 	"gopkg.in/oauth2.v3"
 	"gopkg.in/oauth2.v3/models"
