@@ -50,7 +50,12 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 	if code := info.GetCode(); code != "" {
 		pipe.Set(code, jv, info.GetCodeExpiresIn())
 	} else {
-		basicID := uuid.NewV4().String()
+		basicID, uerr := uuid.NewV4()
+		if uerr != nil {
+			err = uerr
+			return
+		}
+		basicIDStr := basicID.String()
 		aexp := info.GetAccessExpiresIn()
 		rexp := aexp
 
@@ -59,10 +64,10 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 			if aexp.Seconds() > rexp.Seconds() {
 				aexp = rexp
 			}
-			pipe.Set(refresh, basicID, rexp)
+			pipe.Set(refresh, basicIDStr, rexp)
 		}
-		pipe.Set(info.GetAccess(), basicID, aexp)
-		pipe.Set(basicID, jv, rexp)
+		pipe.Set(info.GetAccess(), basicIDStr, aexp)
+		pipe.Set(basicIDStr, jv, rexp)
 	}
 
 	if _, verr := pipe.Exec(); verr != nil {
