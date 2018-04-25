@@ -9,7 +9,7 @@
 ## Install
 
 ``` bash
-$ go get -u github.com/go-oauth2/redis
+$ go get -u -v gopkg.in/go-oauth2/redis.v1
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ $ go get -u github.com/go-oauth2/redis
 package main
 
 import (
-	"github.com/go-oauth2/redis"
+	"gopkg.in/go-oauth2/redis.v1"
 	"gopkg.in/oauth2.v3/manage"
 )
 

@@ -4,28 +4,18 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/satori/go.uuid"
-	"gopkg.in/redis.v5"
-
 	"gopkg.in/oauth2.v3"
 	"gopkg.in/oauth2.v3/models"
 )
 
 // NewTokenStore Create a token store instance based on redis
 func NewTokenStore(cfg *Config) (ts oauth2.TokenStore, err error) {
-	opt := &redis.Options{
-		Network:      cfg.Network,
-		Addr:         cfg.Addr,
-		Password:     cfg.Password,
-		DB:           cfg.DB,
-		MaxRetries:   cfg.MaxRetries,
-		DialTimeout:  cfg.DialTimeout,
-		ReadTimeout:  cfg.ReadTimeout,
-		WriteTimeout: cfg.WriteTimeout,
-		PoolSize:     cfg.PoolSize,
-		PoolTimeout:  cfg.PoolTimeout,
+	if cfg == nil {
+		panic("config cannot be nil")
 	}
-	cli := redis.NewClient(opt)
+	cli := redis.NewClient(cfg.redisOptions())
 	if verr := cli.Ping().Err(); verr != nil {
 		err = verr
 		return
@@ -46,16 +36,12 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 	if err != nil {
 		return
 	}
+
 	pipe := rs.cli.Pipeline()
 	if code := info.GetCode(); code != "" {
 		pipe.Set(code, jv, info.GetCodeExpiresIn())
 	} else {
-		basicID, uerr := uuid.NewV4()
-		if uerr != nil {
-			err = uerr
-			return
-		}
-		basicIDStr := basicID.String()
+		basicID := uuid.Must(uuid.NewV4()).String()
 		aexp := info.GetAccessExpiresIn()
 		rexp := aexp
 
@@ -64,10 +50,11 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 			if aexp.Seconds() > rexp.Seconds() {
 				aexp = rexp
 			}
-			pipe.Set(refresh, basicIDStr, rexp)
+			pipe.Set(refresh, basicID, rexp)
 		}
-		pipe.Set(info.GetAccess(), basicIDStr, aexp)
-		pipe.Set(basicIDStr, jv, rexp)
+
+		pipe.Set(info.GetAccess(), basicID, aexp)
+		pipe.Set(basicID, jv, rexp)
 	}
 
 	if _, verr := pipe.Exec(); verr != nil {
