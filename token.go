@@ -20,13 +20,14 @@ func NewTokenStore(cfg *Config) (ts oauth2.TokenStore, err error) {
 		err = verr
 		return
 	}
-	ts = &TokenStore{cli: cli}
+	ts = &TokenStore{cli: cli, KeyNamespace: cfg.KeyNamespace}
 	return
 }
 
 // TokenStore redis token store
 type TokenStore struct {
-	cli *redis.Client
+	cli          *redis.Client
+	KeyNamespace string
 }
 
 // Create Create and store the new token information
@@ -39,7 +40,7 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 
 	pipe := rs.cli.Pipeline()
 	if code := info.GetCode(); code != "" {
-		pipe.Set(code, jv, info.GetCodeExpiresIn())
+		pipe.Set(rs.KeyNamespace+code, jv, info.GetCodeExpiresIn())
 	} else {
 		basicID := uuid.Must(uuid.NewV4()).String()
 		aexp := info.GetAccessExpiresIn()
@@ -50,11 +51,11 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 			if aexp.Seconds() > rexp.Seconds() {
 				aexp = rexp
 			}
-			pipe.Set(refresh, basicID, rexp)
+			pipe.Set(rs.KeyNamespace+refresh, basicID, rexp)
 		}
 
-		pipe.Set(info.GetAccess(), basicID, aexp)
-		pipe.Set(basicID, jv, rexp)
+		pipe.Set(rs.KeyNamespace+info.GetAccess(), basicID, aexp)
+		pipe.Set(rs.KeyNamespace+basicID, jv, rexp)
 	}
 
 	if _, verr := pipe.Exec(); verr != nil {
@@ -65,7 +66,7 @@ func (rs *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 
 // remove
 func (rs *TokenStore) remove(key string) (err error) {
-	_, verr := rs.cli.Del(key).Result()
+	_, verr := rs.cli.Del(rs.KeyNamespace + key).Result()
 	if verr != redis.Nil {
 		err = verr
 	}
@@ -91,7 +92,7 @@ func (rs *TokenStore) RemoveByRefresh(refresh string) (err error) {
 }
 
 func (rs *TokenStore) getData(key string) (ti oauth2.TokenInfo, err error) {
-	result := rs.cli.Get(key)
+	result := rs.cli.Get(rs.KeyNamespace + key)
 	if verr := result.Err(); verr != nil {
 		if verr == redis.Nil {
 			return
@@ -113,7 +114,7 @@ func (rs *TokenStore) getData(key string) (ti oauth2.TokenInfo, err error) {
 }
 
 func (rs *TokenStore) getBasicID(token string) (basicID string, err error) {
-	tv, verr := rs.cli.Get(token).Result()
+	tv, verr := rs.cli.Get(rs.KeyNamespace + token).Result()
 	if verr != nil {
 		if verr == redis.Nil {
 			return
