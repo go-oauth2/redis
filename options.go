@@ -66,6 +66,9 @@ type Options struct {
 
 	// TLS Config to use. When set TLS will be negotiated.
 	TLSConfig *tls.Config
+
+	//KeyNamespace used for prefixing/namespacing keys.
+	KeyNamespace string
 }
 
 func (o *Options) redisOptions() *redis.Options {
