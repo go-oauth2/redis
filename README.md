@@ -22,7 +22,7 @@ func main() {
 	manager := manage.NewDefaultManager()
 	
 	// use redis token store
-	manager.MustTokenStorage(redis.NewRedisStore(&redis.Options{
+	manager.MapTokenStorage(redis.NewRedisStore(&redis.Options{
 		Addr: "127.0.0.1:6379",
 		DB: 15,
 	}))
