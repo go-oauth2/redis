@@ -67,7 +67,7 @@ type Options struct {
 	// TLS Config to use. When set TLS will be negotiated.
 	TLSConfig *tls.Config
 
-	//KeyNamespace used for prefixing/namespacing keys.
+	// KeyNamespace used for prefixing/namespacing keys.
 	KeyNamespace string
 }
 
@@ -128,6 +128,9 @@ type ClusterOptions struct {
 	PoolTimeout        time.Duration
 	IdleTimeout        time.Duration
 	IdleCheckFrequency time.Duration
+
+	// KeyNamespace used for prefixing/namespacing keys.
+	KeyNamespace string
 }
 
 func (o *ClusterOptions) redisClusterOptions() *redis.ClusterOptions {

@@ -21,8 +21,7 @@ func TestTokenStore(t *testing.T) {
 			Addr: addr,
 			DB:   db,
 		}
-		store, err := redis.NewRedisStore(opts)
-		So(err, ShouldBeNil)
+		store := redis.NewRedisStore(opts)
 
 		Convey("Test authorization code store", func() {
 			info := &models.Token{
@@ -106,12 +105,12 @@ func TestTokenStore(t *testing.T) {
 
 func TestTokenStoreWithKeyNamespace(t *testing.T) {
 	Convey("Test redis token store", t, func() {
-		cfg := &redis.Config{
-			Addr:         "127.0.0.1:6379",
+		opts := &redis.Options{
+			Addr:         addr,
+			DB:           db,
 			KeyNamespace: "test:",
 		}
-		store, err := redis.NewTokenStore(cfg)
-		So(err, ShouldBeNil)
+		store := redis.NewRedisStore(opts)
 
 		Convey("Test authorization code store", func() {
 			info := &models.Token{

@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -21,14 +22,19 @@ func NewRedisStore(opts *Options) *TokenStore {
 	if opts == nil {
 		panic("options cannot be nil")
 	}
-	return NewRedisStoreWithCli(redis.NewClient(opts.redisOptions()))
+	return NewRedisStoreWithCli(redis.NewClient(opts.redisOptions()), opts.KeyNamespace)
 }
 
 // NewRedisStoreWithCli create an instance of a redis store
-func NewRedisStoreWithCli(cli *redis.Client) *TokenStore {
-	return &TokenStore{
+func NewRedisStoreWithCli(cli *redis.Client, keyNamespace ...string) *TokenStore {
+	store := &TokenStore{
 		cli: cli,
 	}
+
+	if len(keyNamespace) > 0 {
+		store.ns = keyNamespace[0]
+	}
+	return store
 }
 
 // NewRedisClusterStore create an instance of a redis cluster store
@@ -36,14 +42,19 @@ func NewRedisClusterStore(opts *ClusterOptions) *TokenStore {
 	if opts == nil {
 		panic("options cannot be nil")
 	}
-	return NewRedisClusterStoreWithCli(redis.NewClusterClient(opts.redisClusterOptions()))
+	return NewRedisClusterStoreWithCli(redis.NewClusterClient(opts.redisClusterOptions()), opts.KeyNamespace)
 }
 
 // NewRedisClusterStoreWithCli create an instance of a redis cluster store
-func NewRedisClusterStoreWithCli(cli *redis.ClusterClient) *TokenStore {
-	return &TokenStore{
+func NewRedisClusterStoreWithCli(cli *redis.ClusterClient, keyNamespace ...string) *TokenStore {
+	store := &TokenStore{
 		cli: cli,
 	}
+
+	if len(keyNamespace) > 0 {
+		store.ns = keyNamespace[0]
+	}
+	return store
 }
 
 type clienter interface {
@@ -56,11 +67,16 @@ type clienter interface {
 // TokenStore redis token store
 type TokenStore struct {
 	cli clienter
+	ns  string
 }
 
 // Close close the store
 func (s *TokenStore) Close() error {
 	return s.cli.Close()
+}
+
+func (s *TokenStore) wrapperKey(key string) string {
+	return fmt.Sprintf("%s%s", s.ns, key)
 }
 
 // Create Create and store the new token information
@@ -73,7 +89,7 @@ func (s *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 
 	pipe := s.cli.TxPipeline()
 	if code := info.GetCode(); code != "" {
-		pipe.Set(code, jv, info.GetCodeExpiresIn())
+		pipe.Set(s.wrapperKey(code), jv, info.GetCodeExpiresIn())
 	} else {
 		basicID := uuid.Must(uuid.NewRandom()).String()
 		aexp := info.GetAccessExpiresIn()
@@ -84,11 +100,11 @@ func (s *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 			if aexp.Seconds() > rexp.Seconds() {
 				aexp = rexp
 			}
-			pipe.Set(refresh, basicID, rexp)
+			pipe.Set(s.wrapperKey(refresh), basicID, rexp)
 		}
 
-		pipe.Set(info.GetAccess(), basicID, aexp)
-		pipe.Set(basicID, jv, rexp)
+		pipe.Set(s.wrapperKey(info.GetAccess()), basicID, aexp)
+		pipe.Set(s.wrapperKey(basicID), jv, rexp)
 	}
 
 	if _, verr := pipe.Exec(); verr != nil {
@@ -99,7 +115,7 @@ func (s *TokenStore) Create(info oauth2.TokenInfo) (err error) {
 
 // remove
 func (s *TokenStore) remove(key string) (err error) {
-	_, verr := s.cli.Del(key).Result()
+	_, verr := s.cli.Del(s.wrapperKey(key)).Result()
 	if verr != redis.Nil {
 		err = verr
 	}
@@ -125,7 +141,7 @@ func (s *TokenStore) RemoveByRefresh(refresh string) (err error) {
 }
 
 func (s *TokenStore) getData(key string) (ti oauth2.TokenInfo, err error) {
-	result := s.cli.Get(key)
+	result := s.cli.Get(s.wrapperKey(key))
 	if verr := result.Err(); verr != nil {
 		if verr == redis.Nil {
 			return
@@ -133,21 +149,24 @@ func (s *TokenStore) getData(key string) (ti oauth2.TokenInfo, err error) {
 		err = verr
 		return
 	}
+
 	iv, err := result.Bytes()
 	if err != nil {
 		return
 	}
+
 	var tm models.Token
 	if verr := jsonUnmarshal(iv, &tm); verr != nil {
 		err = verr
 		return
 	}
+
 	ti = &tm
 	return
 }
 
 func (s *TokenStore) getBasicID(token string) (basicID string, err error) {
-	tv, verr := s.cli.Get(token).Result()
+	tv, verr := s.cli.Get(s.wrapperKey(token)).Result()
 	if verr != nil {
 		if verr == redis.Nil {
 			return
