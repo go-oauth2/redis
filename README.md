@@ -1,15 +1,11 @@
-# Redis Storage for OAuth 2.0
+# Redis Storage for [OAuth 2.0](https://github.com/go-oauth2/oauth2)
 
-> Based on the redis token storage
-
-[![License][License-Image]][License-Url] 
-[![ReportCard][ReportCard-Image]][ReportCard-Url] 
-[![GoDoc][GoDoc-Image]][GoDoc-Url]
+[![Build][Build-Status-Image]][Build-Status-Url] [![Codecov][codecov-image]][codecov-url] [![ReportCard][reportcard-image]][reportcard-url] [![GoDoc][godoc-image]][godoc-url] [![License][license-image]][license-url]
 
 ## Install
 
 ``` bash
-$ go get -u -v gopkg.in/go-oauth2/redis.v1
+$ go get -u -v gopkg.in/go-oauth2/redis.v3
 ```
 
 ## Usage
@@ -18,18 +14,21 @@ $ go get -u -v gopkg.in/go-oauth2/redis.v1
 package main
 
 import (
-	"gopkg.in/go-oauth2/redis.v1"
+	"gopkg.in/go-oauth2/redis.v3"
 	"gopkg.in/oauth2.v3/manage"
 )
 
 func main() {
 	manager := manage.NewDefaultManager()
+	
 	// use redis token store
-	manager.MustTokenStorage(redis.NewTokenStore(&redis.Config{
+	manager.MustTokenStorage(redis.NewRedisStore(&redis.Options{
 		Addr: "127.0.0.1:6379",
+		DB: 15,
 	}))
 
-	// ...
+	// use redis cluster store
+	// redis.NewRedisClusterStore()
 }
 ```
 
@@ -39,9 +38,13 @@ func main() {
 Copyright (c) 2016 Lyric
 ```
 
-[License-Url]: http://opensource.org/licenses/MIT
-[License-Image]: https://img.shields.io/npm/l/express.svg
-[ReportCard-Url]: https://goreportcard.com/report/github.com/go-oauth2/redis
-[ReportCard-Image]: https://goreportcard.com/badge/github.com/go-oauth2/redis
-[GoDoc-Url]: https://godoc.org/github.com/go-oauth2/redis
-[GoDoc-Image]: https://godoc.org/github.com/go-oauth2/redis?status.svg
+[Build-Status-Url]: https://travis-ci.org/go-oauth2/redis
+[Build-Status-Image]: https://travis-ci.org/go-oauth2/redis.svg?branch=master
+[codecov-url]: https://codecov.io/gh/go-oauth2/redis
+[codecov-image]: https://codecov.io/gh/go-oauth2/redis/branch/master/graph/badge.svg
+[reportcard-url]: https://goreportcard.com/report/gopkg.in/go-oauth2/redis.v3
+[reportcard-image]: https://goreportcard.com/badge/gopkg.in/go-oauth2/redis.v3
+[godoc-url]: https://godoc.org/gopkg.in/go-oauth2/redis.v3
+[godoc-image]: https://godoc.org/gopkg.in/go-oauth2/redis.v3?status.svg
+[license-url]: http://opensource.org/licenses/MIT
+[license-image]: https://img.shields.io/npm/l/express.svg

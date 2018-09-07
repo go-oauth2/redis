@@ -4,18 +4,24 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.in/go-oauth2/redis.v1"
+	"gopkg.in/go-oauth2/redis.v3"
 	"gopkg.in/oauth2.v3/models"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const (
+	addr = "localhost:6379"
+	db   = 15
+)
+
 func TestTokenStore(t *testing.T) {
 	Convey("Test redis token store", t, func() {
-		cfg := &redis.Config{
-			Addr: "127.0.0.1:6379",
+		opts := &redis.Options{
+			Addr: addr,
+			DB:   db,
 		}
-		store, err := redis.NewTokenStore(cfg)
+		store, err := redis.NewRedisStore(opts)
 		So(err, ShouldBeNil)
 
 		Convey("Test authorization code store", func() {

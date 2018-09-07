@@ -8,8 +8,8 @@ import (
 	"github.com/go-redis/redis"
 )
 
-// Config Redis parameter options
-type Config struct {
+// Options Redis parameter options
+type Options struct {
 	// The network type, either tcp or unix.
 	// Default is tcp.
 	Network string
@@ -68,7 +68,7 @@ type Config struct {
 	TLSConfig *tls.Config
 }
 
-func (o *Config) redisOptions() *redis.Options {
+func (o *Options) redisOptions() *redis.Options {
 	return &redis.Options{
 		Network:            o.Network,
 		Addr:               o.Addr,
@@ -86,5 +86,65 @@ func (o *Config) redisOptions() *redis.Options {
 		IdleTimeout:        o.IdleTimeout,
 		IdleCheckFrequency: o.IdleCheckFrequency,
 		TLSConfig:          o.TLSConfig,
+	}
+}
+
+// ClusterOptions are used to configure a cluster client and should be
+// passed to NewClusterClient.
+type ClusterOptions struct {
+	// A seed list of host:port addresses of cluster nodes.
+	Addrs []string
+
+	// The maximum number of retries before giving up. Command is retried
+	// on network errors and MOVED/ASK redirects.
+	// Default is 8.
+	MaxRedirects int
+
+	// Enables read-only commands on slave nodes.
+	ReadOnly bool
+	// Allows routing read-only commands to the closest master or slave node.
+	RouteByLatency bool
+	// Allows routing read-only commands to the random master or slave node.
+	RouteRandomly bool
+
+	// Following options are copied from Options struct.
+
+	OnConnect func(*redis.Conn) error
+
+	MaxRetries      int
+	MinRetryBackoff time.Duration
+	MaxRetryBackoff time.Duration
+	Password        string
+
+	DialTimeout  time.Duration
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+
+	// PoolSize applies per cluster node and not for the whole cluster.
+	PoolSize           int
+	PoolTimeout        time.Duration
+	IdleTimeout        time.Duration
+	IdleCheckFrequency time.Duration
+}
+
+func (o *ClusterOptions) redisClusterOptions() *redis.ClusterOptions {
+	return &redis.ClusterOptions{
+		Addrs:              o.Addrs,
+		MaxRedirects:       o.MaxRedirects,
+		ReadOnly:           o.ReadOnly,
+		RouteByLatency:     o.RouteByLatency,
+		RouteRandomly:      o.RouteRandomly,
+		OnConnect:          o.OnConnect,
+		MaxRetries:         o.MaxRetries,
+		MinRetryBackoff:    o.MinRetryBackoff,
+		MaxRetryBackoff:    o.MaxRetryBackoff,
+		Password:           o.Password,
+		DialTimeout:        o.DialTimeout,
+		ReadTimeout:        o.ReadTimeout,
+		WriteTimeout:       o.WriteTimeout,
+		PoolSize:           o.PoolSize,
+		PoolTimeout:        o.PoolTimeout,
+		IdleTimeout:        o.IdleTimeout,
+		IdleCheckFrequency: o.IdleCheckFrequency,
 	}
 }
