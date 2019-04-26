@@ -28,7 +28,10 @@ func main() {
 	}))
 
 	// use redis cluster store
-	// redis.NewRedisClusterStore()
+	// manager.MapTokenStorage(redis.NewRedisClusterStore(&redis.ClusterOptions{
+	// 	Addrs: []string{"127.0.0.1:6379"},
+	// 	DB: 15,
+	// }))
 }
 ```
 
