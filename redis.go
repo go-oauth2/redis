@@ -18,11 +18,11 @@ var (
 )
 
 // NewRedisStore create an instance of a redis store
-func NewRedisStore(opts *Options) *TokenStore {
+func NewRedisStore(opts *redis.Options, keyNamespace ...string) *TokenStore {
 	if opts == nil {
 		panic("options cannot be nil")
 	}
-	return NewRedisStoreWithCli(redis.NewClient(opts.redisOptions()), opts.KeyNamespace)
+	return NewRedisStoreWithCli(redis.NewClient(opts), keyNamespace...)
 }
 
 // NewRedisStoreWithCli create an instance of a redis store
@@ -38,11 +38,11 @@ func NewRedisStoreWithCli(cli *redis.Client, keyNamespace ...string) *TokenStore
 }
 
 // NewRedisClusterStore create an instance of a redis cluster store
-func NewRedisClusterStore(opts *ClusterOptions) *TokenStore {
+func NewRedisClusterStore(opts *redis.ClusterOptions, keyNamespace ...string) *TokenStore {
 	if opts == nil {
 		panic("options cannot be nil")
 	}
-	return NewRedisClusterStoreWithCli(redis.NewClusterClient(opts.redisClusterOptions()), opts.KeyNamespace)
+	return NewRedisClusterStoreWithCli(redis.NewClusterClient(opts), keyNamespace...)
 }
 
 // NewRedisClusterStoreWithCli create an instance of a redis cluster store
