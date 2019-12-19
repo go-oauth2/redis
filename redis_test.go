@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-redis/redis"
 	"gopkg.in/oauth2.v3/models"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,7 +17,7 @@ const (
 
 func TestTokenStore(t *testing.T) {
 	Convey("Test redis token store", t, func() {
-		opts := &Options{
+		opts := &redis.Options{
 			Addr: addr,
 			DB:   db,
 		}
@@ -104,12 +105,11 @@ func TestTokenStore(t *testing.T) {
 
 func TestTokenStoreWithKeyNamespace(t *testing.T) {
 	Convey("Test redis token store", t, func() {
-		opts := &Options{
-			Addr:         addr,
-			DB:           db,
-			KeyNamespace: "test:",
+		opts := &redis.Options{
+			Addr: addr,
+			DB:   db,
 		}
-		store := NewRedisStore(opts)
+		store := NewRedisStore(opts, "test:")
 
 		Convey("Test authorization code store", func() {
 			info := &models.Token{

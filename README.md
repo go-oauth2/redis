@@ -14,7 +14,8 @@ $ go get -u -v gopkg.in/go-oauth2/redis.v3
 package main
 
 import (
-	"gopkg.in/go-oauth2/redis.v3"
+	"github.com/go-redis/redis"
+	oredis "gopkg.in/go-oauth2/redis.v3"
 	"gopkg.in/oauth2.v3/manage"
 )
 
@@ -22,13 +23,13 @@ func main() {
 	manager := manage.NewDefaultManager()
 	
 	// use redis token store
-	manager.MapTokenStorage(redis.NewRedisStore(&redis.Options{
+	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
 		Addr: "127.0.0.1:6379",
 		DB: 15,
 	}))
 
 	// use redis cluster store
-	// manager.MapTokenStorage(redis.NewRedisClusterStore(&redis.ClusterOptions{
+	// manager.MapTokenStorage(oredis.NewRedisClusterStore(&redis.ClusterOptions{
 	// 	Addrs: []string{"127.0.0.1:6379"},
 	// 	DB: 15,
 	// }))
