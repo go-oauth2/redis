@@ -1,5 +1,5 @@
 language: go
-go_import_path: gopkg.in/go-oauth2/redis.v3
+go_import_path: gopkg.in/go-oauth2/redis.v4
 matrix:
   include:
     - go: "1.9.7"

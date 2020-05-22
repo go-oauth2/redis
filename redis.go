@@ -1,14 +1,15 @@
 package redis
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
 	jsoniter "github.com/json-iterator/go"
-	"gopkg.in/oauth2.v3"
-	"gopkg.in/oauth2.v3/models"
-	"gopkg.in/oauth2.v3/utils/uuid"
+	"gopkg.in/oauth2.v4"
+	"gopkg.in/oauth2.v4/models"
+	"gopkg.in/oauth2.v4/utils/uuid"
 )
 
 var (
@@ -173,7 +174,7 @@ func (s *TokenStore) getBasicID(token string) (string, error) {
 }
 
 // Create Create and store the new token information
-func (s *TokenStore) Create(info oauth2.TokenInfo) error {
+func (s *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 	ct := time.Now()
 	jv, err := jsonMarshal(info)
 	if err != nil {
@@ -207,27 +208,27 @@ func (s *TokenStore) Create(info oauth2.TokenInfo) error {
 }
 
 // RemoveByCode Use the authorization code to delete the token information
-func (s *TokenStore) RemoveByCode(code string) error {
+func (s *TokenStore) RemoveByCode(ctx context.Context, code string) error {
 	return s.remove(code)
 }
 
 // RemoveByAccess Use the access token to delete the token information
-func (s *TokenStore) RemoveByAccess(access string) error {
+func (s *TokenStore) RemoveByAccess(ctx context.Context, access string) error {
 	return s.removeToken(access, false)
 }
 
 // RemoveByRefresh Use the refresh token to delete the token information
-func (s *TokenStore) RemoveByRefresh(refresh string) error {
+func (s *TokenStore) RemoveByRefresh(ctx context.Context, refresh string) error {
 	return s.removeToken(refresh, false)
 }
 
 // GetByCode Use the authorization code for token information data
-func (s *TokenStore) GetByCode(code string) (oauth2.TokenInfo, error) {
+func (s *TokenStore) GetByCode(ctx context.Context, code string) (oauth2.TokenInfo, error) {
 	return s.getToken(code)
 }
 
 // GetByAccess Use the access token for token information data
-func (s *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
+func (s *TokenStore) GetByAccess(ctx context.Context, access string) (oauth2.TokenInfo, error) {
 	basicID, err := s.getBasicID(access)
 	if err != nil || basicID == "" {
 		return nil, err
@@ -236,7 +237,7 @@ func (s *TokenStore) GetByAccess(access string) (oauth2.TokenInfo, error) {
 }
 
 // GetByRefresh Use the refresh token for token information data
-func (s *TokenStore) GetByRefresh(refresh string) (oauth2.TokenInfo, error) {
+func (s *TokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.TokenInfo, error) {
 	basicID, err := s.getBasicID(refresh)
 	if err != nil || basicID == "" {
 		return nil, err

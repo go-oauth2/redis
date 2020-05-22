@@ -5,7 +5,7 @@
 ## Install
 
 ``` bash
-$ go get -u -v gopkg.in/go-oauth2/redis.v3
+$ go get -u -v gopkg.in/go-oauth2/redis.v4
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ package main
 
 import (
 	"github.com/go-redis/redis"
-	oredis "gopkg.in/go-oauth2/redis.v3"
+	oredis "gopkg.in/go-oauth2/redis.v4"
 	"gopkg.in/oauth2.v3/manage"
 )
 
@@ -39,16 +39,16 @@ func main() {
 ## MIT License
 
 ```
-Copyright (c) 2016 Lyric
+Copyright (c) 2020 Lyric
 ```
 
 [Build-Status-Url]: https://travis-ci.org/go-oauth2/redis
 [Build-Status-Image]: https://travis-ci.org/go-oauth2/redis.svg?branch=master
 [codecov-url]: https://codecov.io/gh/go-oauth2/redis
 [codecov-image]: https://codecov.io/gh/go-oauth2/redis/branch/master/graph/badge.svg
-[reportcard-url]: https://goreportcard.com/report/gopkg.in/go-oauth2/redis.v3
-[reportcard-image]: https://goreportcard.com/badge/gopkg.in/go-oauth2/redis.v3
-[godoc-url]: https://godoc.org/gopkg.in/go-oauth2/redis.v3
-[godoc-image]: https://godoc.org/gopkg.in/go-oauth2/redis.v3?status.svg
+[reportcard-url]: https://goreportcard.com/report/gopkg.in/go-oauth2/redis.v4
+[reportcard-image]: https://goreportcard.com/badge/gopkg.in/go-oauth2/redis.v4
+[godoc-url]: https://godoc.org/gopkg.in/go-oauth2/redis.v4
+[godoc-image]: https://godoc.org/gopkg.in/go-oauth2/redis.v4?status.svg
 [license-url]: http://opensource.org/licenses/MIT
 [license-image]: https://img.shields.io/npm/l/express.svg
