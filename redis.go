@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-oauth2/oauth2/v4"
+	"github.com/go-oauth2/oauth2/v4/models"
+	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	jsoniter "github.com/json-iterator/go"
-	"gopkg.in/oauth2.v4"
-	"gopkg.in/oauth2.v4/models"
-	"gopkg.in/oauth2.v4/utils/uuid"
 )
 
 var (
@@ -59,10 +59,10 @@ func NewRedisClusterStoreWithCli(cli *redis.ClusterClient, keyNamespace ...strin
 }
 
 type clienter interface {
-	Get(key string) *redis.StringCmd
-	Exists(key ...string) *redis.IntCmd
+	Get(ctx context.Context, key string) *redis.StringCmd
+	Exists(ctx context.Context, key ...string) *redis.IntCmd
 	TxPipeline() redis.Pipeliner
-	Del(keys ...string) *redis.IntCmd
+	Del(ctx context.Context, keys ...string) *redis.IntCmd
 	Close() error
 }
 
@@ -92,26 +92,26 @@ func (s *TokenStore) checkError(result redis.Cmder) (bool, error) {
 }
 
 // remove
-func (s *TokenStore) remove(key string) error {
-	result := s.cli.Del(s.wrapperKey(key))
+func (s *TokenStore) remove(ctx context.Context, key string) error {
+	result := s.cli.Del(ctx, s.wrapperKey(key))
 	_, err := s.checkError(result)
 	return err
 }
 
-func (s *TokenStore) removeToken(tokenString string, isRefresh bool) error {
-	basicID, err := s.getBasicID(tokenString)
+func (s *TokenStore) removeToken(ctx context.Context, tokenString string, isRefresh bool) error {
+	basicID, err := s.getBasicID(ctx, tokenString)
 	if err != nil {
 		return err
 	} else if basicID == "" {
 		return nil
 	}
 
-	err = s.remove(tokenString)
+	err = s.remove(ctx, tokenString)
 	if err != nil {
 		return err
 	}
 
-	token, err := s.getToken(basicID)
+	token, err := s.getToken(ctx, basicID)
 	if err != nil {
 		return err
 	} else if token == nil {
@@ -122,11 +122,11 @@ func (s *TokenStore) removeToken(tokenString string, isRefresh bool) error {
 	if isRefresh {
 		checkToken = token.GetAccess()
 	}
-	iresult := s.cli.Exists(s.wrapperKey(checkToken))
+	iresult := s.cli.Exists(ctx, s.wrapperKey(checkToken))
 	if err := iresult.Err(); err != nil && err != redis.Nil {
 		return err
 	} else if iresult.Val() == 0 {
-		return s.remove(basicID)
+		return s.remove(ctx, basicID)
 	}
 
 	return nil
@@ -154,8 +154,8 @@ func (s *TokenStore) parseToken(result *redis.StringCmd) (oauth2.TokenInfo, erro
 	return &token, nil
 }
 
-func (s *TokenStore) getToken(key string) (oauth2.TokenInfo, error) {
-	result := s.cli.Get(s.wrapperKey(key))
+func (s *TokenStore) getToken(ctx context.Context, key string) (oauth2.TokenInfo, error) {
+	result := s.cli.Get(ctx, s.wrapperKey(key))
 	return s.parseToken(result)
 }
 
@@ -168,8 +168,8 @@ func (s *TokenStore) parseBasicID(result *redis.StringCmd) (string, error) {
 	return result.Val(), nil
 }
 
-func (s *TokenStore) getBasicID(token string) (string, error) {
-	result := s.cli.Get(s.wrapperKey(token))
+func (s *TokenStore) getBasicID(ctx context.Context, token string) (string, error) {
+	result := s.cli.Get(ctx, s.wrapperKey(token))
 	return s.parseBasicID(result)
 }
 
@@ -183,7 +183,7 @@ func (s *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 
 	pipe := s.cli.TxPipeline()
 	if code := info.GetCode(); code != "" {
-		pipe.Set(s.wrapperKey(code), jv, info.GetCodeExpiresIn())
+		pipe.Set(ctx, s.wrapperKey(code), jv, info.GetCodeExpiresIn())
 	} else {
 		basicID := uuid.Must(uuid.NewRandom()).String()
 		aexp := info.GetAccessExpiresIn()
@@ -194,14 +194,14 @@ func (s *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 			if aexp.Seconds() > rexp.Seconds() {
 				aexp = rexp
 			}
-			pipe.Set(s.wrapperKey(refresh), basicID, rexp)
+			pipe.Set(ctx, s.wrapperKey(refresh), basicID, rexp)
 		}
 
-		pipe.Set(s.wrapperKey(info.GetAccess()), basicID, aexp)
-		pipe.Set(s.wrapperKey(basicID), jv, rexp)
+		pipe.Set(ctx, s.wrapperKey(info.GetAccess()), basicID, aexp)
+		pipe.Set(ctx, s.wrapperKey(basicID), jv, rexp)
 	}
 
-	if _, err := pipe.Exec(); err != nil {
+	if _, err := pipe.Exec(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -209,38 +209,38 @@ func (s *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 
 // RemoveByCode Use the authorization code to delete the token information
 func (s *TokenStore) RemoveByCode(ctx context.Context, code string) error {
-	return s.remove(code)
+	return s.remove(ctx, code)
 }
 
 // RemoveByAccess Use the access token to delete the token information
 func (s *TokenStore) RemoveByAccess(ctx context.Context, access string) error {
-	return s.removeToken(access, false)
+	return s.removeToken(ctx, access, false)
 }
 
 // RemoveByRefresh Use the refresh token to delete the token information
 func (s *TokenStore) RemoveByRefresh(ctx context.Context, refresh string) error {
-	return s.removeToken(refresh, false)
+	return s.removeToken(ctx, refresh, false)
 }
 
 // GetByCode Use the authorization code for token information data
 func (s *TokenStore) GetByCode(ctx context.Context, code string) (oauth2.TokenInfo, error) {
-	return s.getToken(code)
+	return s.getToken(ctx, code)
 }
 
 // GetByAccess Use the access token for token information data
 func (s *TokenStore) GetByAccess(ctx context.Context, access string) (oauth2.TokenInfo, error) {
-	basicID, err := s.getBasicID(access)
+	basicID, err := s.getBasicID(ctx, access)
 	if err != nil || basicID == "" {
 		return nil, err
 	}
-	return s.getToken(basicID)
+	return s.getToken(ctx, basicID)
 }
 
 // GetByRefresh Use the refresh token for token information data
 func (s *TokenStore) GetByRefresh(ctx context.Context, refresh string) (oauth2.TokenInfo, error) {
-	basicID, err := s.getBasicID(refresh)
+	basicID, err := s.getBasicID(ctx, refresh)
 	if err != nil || basicID == "" {
 		return nil, err
 	}
-	return s.getToken(basicID)
+	return s.getToken(ctx, basicID)
 }

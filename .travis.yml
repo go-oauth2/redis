@@ -1,8 +1,7 @@
 language: go
-go_import_path: gopkg.in/go-oauth2/redis.v4
+go_import_path: github.com/go-oauth2/redis/v4
 matrix:
   include:
-    - go: "1.9.7"
     - go: 1.13.x
       env: GO111MODULE=on
 services:
