@@ -14,7 +14,7 @@ $ go get -u -v github.com/go-oauth2/redis/v4
 package main
 
 import (
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	oredis "github.com/go-oauth2/redis/v4"
 	"github.com/go-oauth2/oauth2/v4/manage"
 )
