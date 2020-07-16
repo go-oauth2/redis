@@ -219,7 +219,7 @@ func (s *TokenStore) RemoveByAccess(ctx context.Context, access string) error {
 
 // RemoveByRefresh Use the refresh token to delete the token information
 func (s *TokenStore) RemoveByRefresh(ctx context.Context, refresh string) error {
-	return s.removeToken(ctx, refresh, false)
+	return s.removeToken(ctx, refresh, true)
 }
 
 // GetByCode Use the authorization code for token information data
