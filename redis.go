@@ -191,8 +191,10 @@ func (s *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
 
 		if refresh := info.GetRefresh(); refresh != "" {
 			rexp = info.GetRefreshCreateAt().Add(info.GetRefreshExpiresIn()).Sub(ct)
-			if aexp.Seconds() > rexp.Seconds() {
-				aexp = rexp
+			if rexp.Seconds() > 0 {
+				if aexp.Seconds() > rexp.Seconds() {
+					aexp = rexp
+				}
 			}
 			pipe.Set(ctx, s.wrapperKey(refresh), basicID, rexp)
 		}
