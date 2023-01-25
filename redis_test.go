@@ -18,9 +18,9 @@ const (
 
 func TestTokenStore(t *testing.T) {
 	Convey("Test redis token store", t, func() {
-		opts := &redis.Options{
-			Addr: addr,
-			DB:   db,
+		opts := &redis.UniversalOptions{
+			Addrs: []string{addr},
+			DB:    db,
 		}
 		store := NewRedisStore(opts)
 		ctx := context.Background()
@@ -108,9 +108,9 @@ func TestTokenStore(t *testing.T) {
 func TestTokenStoreWithKeyNamespace(t *testing.T) {
 	ctx := context.Background()
 	Convey("Test redis token store", t, func() {
-		opts := &redis.Options{
-			Addr: addr,
-			DB:   db,
+		opts := &redis.UniversalOptions{
+			Addrs: []string{addr},
+			DB:    db,
 		}
 		store := NewRedisStore(opts, "test:")
 

@@ -19,15 +19,15 @@ var (
 )
 
 // NewRedisStore create an instance of a redis store
-func NewRedisStore(opts *redis.Options, keyNamespace ...string) *TokenStore {
+func NewRedisStore(opts *redis.UniversalOptions, keyNamespace ...string) *TokenStore {
 	if opts == nil {
 		panic("options cannot be nil")
 	}
-	return NewRedisStoreWithCli(redis.NewClient(opts), keyNamespace...)
+	return NewRedisStoreWithCli(redis.NewUniversalClient(opts), keyNamespace...)
 }
 
 // NewRedisStoreWithCli create an instance of a redis store
-func NewRedisStoreWithCli(cli *redis.Client, keyNamespace ...string) *TokenStore {
+func NewRedisStoreWithCli(cli redis.UniversalClient, keyNamespace ...string) *TokenStore {
 	store := &TokenStore{
 		cli: cli,
 	}

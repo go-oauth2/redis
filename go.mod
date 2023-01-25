@@ -1,4 +1,4 @@
-module github.com/ednitioncode/go-oauth2-redis
+module github.com/go-oauth2/redis/v4
 
 go 1.13
 
