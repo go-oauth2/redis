@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/go-oauth2/oauth2/v4/models"
-	"github.com/go-redis/redis/v8"
+    "github.com/redis/go-redis/v9"
 
-	. "github.com/smartystreets/goconvey/convey"
+    . "github.com/smartystreets/goconvey/convey"
 )
 
 const (
