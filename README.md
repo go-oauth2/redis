@@ -14,7 +14,7 @@ $ go get -u -v github.com/go-oauth2/redis/v4
 package main
 
 import (
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	oredis "github.com/go-oauth2/redis/v4"
 	"github.com/go-oauth2/oauth2/v4/manage"
 )
@@ -35,6 +35,11 @@ func main() {
 	// }))
 }
 ```
+
+## Testing
+
+Testing requires a redis db. If you already have one, go ahead and run `go test ./...` like normal.
+If you don't already have one, or don't want to use it, you can run in docker with `docker compose run --rm test && docker compose down`.
 
 ## MIT License
 
