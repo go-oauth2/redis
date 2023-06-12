@@ -1,0 +1,25 @@
+version: "3"
+services:
+  test:
+    image: golang
+    env_file: .test.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./:/src
+    working_dir: /src
+    command: ["go", "test", "./..."]
+
+  redis:
+    image: redis:7
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 1s
+      interval: 3s
+      timeout: 1s
+      retries: 10
+    command:
+      ["redis-server", "--loglevel warning"]

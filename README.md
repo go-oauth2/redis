@@ -36,6 +36,11 @@ func main() {
 }
 ```
 
+## Testing
+
+Testing requires a redis db. If you already have one, go ahead and run `go test ./...` like normal.
+If you don't already have one, or don't want to use it, you can run in docker with `docker compose run --rm test && docker compose down`.
+
 ## MIT License
 
 ```

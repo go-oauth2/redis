@@ -2,19 +2,35 @@ package redis
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/go-oauth2/oauth2/v4/models"
-	"github.com/go-redis/redis/v9"
+	"github.com/redis/go-redis/v9"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-const (
-	addr = "localhost:6379"
+var (
+	host = os.Getenv("REDIS_HOST") //"redis:6379"
+	port = os.Getenv("REDIS_PORT") //"redis:6379"
+	addr = fmt.Sprintf("%s:%s", host, port)
 	db   = 15
 )
+
+func init() {
+	// default the redis host and port
+	if host == "" {
+		host = "localhost"
+		addr = fmt.Sprintf("%s:%s", host, port)
+	}
+	if port == "" {
+		port = "6379"
+		addr = fmt.Sprintf("%s:%s", host, port)
+	}
+}
 
 func TestTokenStore(t *testing.T) {
 	Convey("Test redis token store", t, func() {
