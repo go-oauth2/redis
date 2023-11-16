@@ -28,14 +28,7 @@ func NewRedisStore(opts *redis.Options, keyNamespace ...string) *TokenStore {
 
 // NewRedisStoreWithCli create an instance of a redis store
 func NewRedisStoreWithCli(cli *redis.Client, keyNamespace ...string) *TokenStore {
-	store := &TokenStore{
-		cli: cli,
-	}
-
-	if len(keyNamespace) > 0 {
-		store.ns = keyNamespace[0]
-	}
-	return store
+	return NewRedisStoreWithInterface(cli, keyNamespace...)
 }
 
 // NewRedisClusterStore create an instance of a redis cluster store
@@ -48,6 +41,11 @@ func NewRedisClusterStore(opts *redis.ClusterOptions, keyNamespace ...string) *T
 
 // NewRedisClusterStoreWithCli create an instance of a redis cluster store
 func NewRedisClusterStoreWithCli(cli *redis.ClusterClient, keyNamespace ...string) *TokenStore {
+	return NewRedisStoreWithInterface(cli, keyNamespace...)
+}
+
+// NewRedisStoreWithInterface create an instance of a redis store
+func NewRedisStoreWithInterface(cli clienter, keyNamespace ...string) *TokenStore {
 	store := &TokenStore{
 		cli: cli,
 	}
